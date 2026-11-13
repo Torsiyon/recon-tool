@@ -1,0 +1,8 @@
+.htaccess
+.htpasswd
+server-status
+server-info
+cgi-bin/
+cgi-bin/test-cgi
+icons/
+manual/

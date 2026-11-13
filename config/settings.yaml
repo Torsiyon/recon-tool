@@ -1,0 +1,110 @@
+# Varsayılan ayarlar. Komut satırı argümanları bu değerleri ezer.
+general:
+  output_dir: outputs
+  log_level: INFO
+  tool_timeout: 3600          # Harici bir aracın en fazla çalışma süresi (sn)
+
+rate_limit:                   # Modül D
+  requests_per_second: 10     # --rate-limit : TÜM modüllerde saniyedeki azami istek
+  threads: 10                 # --threads    : eşzamanlı işçi
+  timeout: 10                 # --timeout    : istek zaman aşımı (sn)
+  random_delay: [0.0, 0.0]    # --jitter     : istekler arası ek rastgele bekleme (min, max sn)
+  user_agent: "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
+  verify_tls: false
+
+http:
+  headers: {}                 # -H "X-Bug-Bounty: kullanici" ile eklenir (bazı programlar zorunlu tutar)
+  proxy: null                 # --proxy http://127.0.0.1:8080 (ör. Burp)
+
+tools:                        # Harici araç yolları (PATH'te değilse tam yol verin)
+  subfinder: subfinder
+  httpx: httpx
+  katana: katana
+  ffuf: ffuf
+  nmap: nmap                  # Port + servis/sürüm taraması (yoksa dahili socket tarayıcı kullanılır)
+  nuclei: nuclei              # CVE/zafiyet taraması (yoksa atlanır; sezgisel CVE üretilmez)
+
+# Araç bayrakları. Arayüzdeki "Tool commands" bölümünden de düzenlenebilir.
+#   subfinder/httpx/nmap/nuclei: buradaki liste TAM davranış-bayrak setini EZER
+#     (yani bayrak çıkarmak için de kullanılır). Varsayılanlar core/config.py > TOOL_DEFAULT_FLAGS:
+#       subfinder: -silent -nc -all | httpx: -silent -nc -sc -title -td -server -cl -irh
+#       nmap: -sT -sV -Pn -n --open | nuclei: -silent -nc -duc
+#     (Zorunlu bayraklar modülde eklenir ve kaldırılamaz: subfinder -d, httpx -json, nmap -oX/-p, nuclei -jsonl)
+#   katana/ffuf: buradaki liste komuta EKLENİR (append).
+# Değer liste ya da tek satır string olabilir.
+tool_args: {}
+  # subfinder: "-silent -nc -all"
+  # nmap: "-sT -Pn -n --open"   # ör. -sV'siz (sürüm tespiti yok)
+  # katana: "-jc"               # (append)
+
+subdomains:
+  include_root: true          # Kök domain'i de canlılık kontrolüne dahil et
+  probe_engine: auto          # auto | httpx | internal  (auto: httpx varsa onu, yoksa dahili)
+  ports: []                   # Ör. [80, 443, 8080, 8443]; boşsa httpx varsayılanı
+
+ports:                        # Port taraması modülü
+  engine: auto                # auto | internal | nmap
+  max_hosts: 50               # En fazla kaç host taranacak
+  ports: []                   # Boşsa yerleşik yaygın port listesi kullanılır
+  # Servis/sürüm tespiti yoğunluğu (nmap -sV). Varsayılan: standart (yoğunluk 7, ürün+sürüm).
+  version_all: false          # true => --version-all (yoğunluk 9, en kapsamlı ama yavaş)
+  # version_intensity: 7      # 0-9 arası elle ayar (version_all kapalıyken)
+
+nuclei:                       # Zafiyet taraması modülü (GÜVENLİ varsayılan)
+  intrusive: false            # true SADECE açık izinle: tehlikeli şablonları (dos/fuzz/brute) açar
+  exclude_tags: []            # Ek olarak dışlanacak etiketler (ör. ["network"])
+  severity: []                # Ör. ["critical","high","medium"]; boşsa hepsi
+  tags: []                    # Yalnızca bu etiketlerle sınırla (ör. ["cve","tech"])
+  templates: []               # Kullanıcının eklediği özel şablon dizini/dosyası (-t)
+  exclude_templates: []       # Dışlanacak şablonlar
+  concurrency: 25             # nuclei -c
+
+crawler:
+  engine: auto                # auto | katana | internal
+  depth: 3
+  js_crawl: true              # katana -jc: JS içindeki endpointleri de çıkar
+  known_files: true           # katana -kf all: robots.txt / sitemap.xml
+  max_pages_per_host: 300     # dahili crawler için üst sınır
+  exclude_extensions: [png, jpg, jpeg, gif, svg, ico, woff, woff2, ttf, eot, css, mp4, mp3, webp, pdf]
+
+js_analysis:
+  max_files: 500
+  feed_endpoints: true        # JS içinden çıkan yolları URL envanterine ekle + yeni JS dosyalarını da tara
+  skip_patterns:              # Bilinen kütüphaneleri atla (gürültüyü azaltır)
+    - jquery
+    - bootstrap
+    - "react(-dom)?(\\.production)?(\\.min)?\\.js"
+    - angular(\.min)?\.js
+    - "vue(\\.runtime)?(\\.global)?(\\.prod)?(\\.min)?\\.js"
+    - lodash
+    - moment(\.min)?\.js
+    - "gtag/js|googletagmanager|google-analytics"
+    - recaptcha
+
+dir_bruteforce:
+  engine: auto                # auto | internal | ffuf  (auto: ffuf varsa onu, yoksa dahili)
+  match_codes: [200, 204, 301, 302, 307, 308, 401, 403, 405, 500]
+  max_hosts: 50               # En fazla kaç canlı host taranacak
+  progress_interval: 15       # Terminal yokken (Docker, CI) ilerleme satırı kaç saniyede bir yazılsın
+  tech_wordlists:             # httpx teknoloji adı (küçük harf, alt-dizgi eşleşmesi) -> wordlist
+    php: wordlists/tech/php.txt
+    wordpress: wordlists/tech/wordpress.txt
+    laravel: wordlists/tech/php.txt
+    asp.net: wordlists/tech/aspnet.txt
+    iis: wordlists/tech/aspnet.txt
+    microsoft: wordlists/tech/aspnet.txt
+    java: wordlists/tech/java.txt
+    tomcat: wordlists/tech/java.txt
+    jsp: wordlists/tech/java.txt
+    spring: wordlists/tech/java.txt
+    jboss: wordlists/tech/java.txt
+    node.js: wordlists/tech/nodejs.txt
+    express: wordlists/tech/nodejs.txt
+    next.js: wordlists/tech/nodejs.txt
+    nginx: wordlists/tech/nginx.txt
+    apache: wordlists/tech/apache.txt
+  common_wordlists:           # Altyapıdan bağımsız, her hosta uygulanır
+    - wordlists/common/sensitive.txt
+    - wordlists/common/backups.txt
+    - wordlists/common/dirs.txt
+  backup_wordlist: wordlists/common/backups.txt   # Bu listeden gelen bulgular backups.txt'ye yazılır

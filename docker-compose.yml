@@ -1,0 +1,74 @@
+# İki kullanım biçimi:
+#   Web arayüzü:  docker compose up dashboard          -> http://localhost:8501
+#   CLI tarama :  docker compose run --rm recon -d example.com --rate-limit 5
+#
+# Çıktılar "named volume" (recon-outputs) içinde tutulur; host klasörüne bind-mount
+# EDİLMEZ. Sebep: Docker Desktop + WSL'de host bind-mount'u "docker-desktop-bind-mounts
+# ... file exists" hatası verebiliyor. Named volume bu soruna hiç girmez. Raporu arayüzdeki
+# "Download all output (.zip)" ile indirebilirsin. Dosyaları host'a almak istersen:
+#   docker compose cp recon:/app/outputs ./outputs   (konteyner çalışırken)
+# Host klasörüne doğrudan yazmak istersen ./outputs:/app/outputs satırlarını geri açabilirsin.
+services:
+  # --- İnteraktif Web Dashboard (Streamlit, app.py) ---
+  dashboard:
+    build: .
+    image: recon:latest
+    # Aynı imajın varsayılan ENTRYPOINT'i (recon.py) yerine Streamlit'i çalıştırır:
+    entrypoint: ["/usr/bin/tini", "--", "python", "-m", "streamlit", "run", "app.py"]
+    command: ["--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"
+    volumes:
+      - recon-outputs:/app/outputs          # named volume (WSL bind-mount hatasına girmez)
+      # Opsiyonel: kendi ayarlarınız / subfinder API anahtarları
+      # - ./config/settings.yaml:/app/config/settings.yaml:ro
+      # - ./provider-config.yaml:/home/recon/.config/subfinder/provider-config.yaml:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      # Streamlit ve ProjectDiscovery araçları bu dizinlere yazar (salt-okunur kök FS ile uyum)
+      - /tmp
+      - /home/recon/.config:uid=10001,gid=10001
+      - /home/recon/.cache:uid=10001,gid=10001
+      - /home/recon/.streamlit:uid=10001,gid=10001
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8501/healthz')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2g
+
+  # --- Komut satırı (tek seferlik tarama) ---
+  recon:
+    build: .
+    image: recon:latest
+    profiles: ["cli"]          # "docker compose up" ile otomatik başlamaz
+    volumes:
+      - recon-outputs:/app/outputs          # named volume (WSL bind-mount hatasına girmez)
+      # - ./config/settings.yaml:/app/config/settings.yaml:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /home/recon/.config:uid=10001,gid=10001
+      - /home/recon/.cache:uid=10001,gid=10001
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2g
+
+# Çıktıların tutulduğu isimli volume (host bind-mount yerine).
+volumes:
+  recon-outputs:

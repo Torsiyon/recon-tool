@@ -1,0 +1,20 @@
+# --- Çekirdek ---
+requests>=2.31.0          # Dahili HTTP istemcisi (prober, crawler, JS indirme, dizin tarama)
+urllib3>=2.0.0            # requests bağımlılığı; TLS uyarılarını kapatmak için doğrudan kullanılıyor
+PyYAML>=6.0.1             # config/settings.yaml okuma
+dnspython>=2.4.0           # Subdomain takeover bulgularını CNAME ile doğrulama (opsiyonel; yoksa doğrulanmamış kalır)
+PySocks>=1.7.1            # --proxy socks5:// desteği (requests SOCKS için buna ihtiyaç duyar)
+
+# --- Arayüz / Loglama ---
+rich>=13.7.0              # Renkli konsol çıktısı (opsiyonel; yoksa düz loglama)
+
+# --- Test ---
+pytest>=8.0.0
+
+# NOT: subfinder, httpx (ProjectDiscovery), katana ve ffuf Go ikilileridir; pip ile değil
+# `go install` ile kurulur (README). Python'daki 'httpx' paketi bilerek kullanılmıyor:
+# aynı isimde bir CLI kurup ProjectDiscovery httpx ile çakışabiliyor.
+
+# --- Web arayüzü (app.py / Streamlit dashboard) ---
+streamlit>=1.40,<4
+pandas>=2.0

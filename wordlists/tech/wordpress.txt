@@ -1,0 +1,17 @@
+wp-admin/
+wp-login.php
+wp-config.php
+wp-config.php.bak
+wp-config.php.old
+wp-config.php~
+wp-content/debug.log
+wp-content/uploads/
+wp-content/backup-db/
+wp-content/backups/
+wp-content/plugins/
+wp-includes/
+wp-json/wp/v2/users
+xmlrpc.php
+readme.html
+license.txt
+wp-cron.php
