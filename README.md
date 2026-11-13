@@ -12,10 +12,13 @@
 > `streamlit run app.py`. With Docker: `docker compose up dashboard` and open http://localhost:8501.
 > The rest of this document is in Turkish. **Only scan systems you own or have written permission to test.**
 
-<!-- Ekran görüntüsü eklemek için: görseli docs/dashboard.png olarak kaydedin ve aşağıdaki satırın
-     başındaki ve sonundaki yorum işaretlerini kaldırın.
-![Recon Dashboard](docs/dashboard.png)
--->
+## Ekran görüntüleri
+
+<img alt="Tarama sonucu" src="https://github.com/user-attachments/assets/b443d722-9fe0-4aec-be16-514daafa7fbc" width="100%" />
+
+<p>
+<img alt="Expert mode" src="https://github.com/user-attachments/assets/14e5037c-2211-448a-a9bf-6a555f34b4f5" height="420" /><img alt="Quick scan" src="https://github.com/user-attachments/assets/58a32316-4a08-41d0-bff1-53ea7b093647" height="420" />
+</p>
 
 Yetkili bug bounty / pentest hedefleri için modüler keşif aracı. subfinder, httpx, nmap, katana, ffuf ve
 nuclei'yi orkestre eder; bulguları hedef başına düzenli bir klasör yapısında saklar.
@@ -271,4 +274,3 @@ NO_PROXY=.recon-lab.test python recon.py -d recon-lab.test --subs /tmp/subs.txt 
 
 ## Lisans
 [MIT](LICENSE). Araç yalnızca izinli hedeflerde kullanılmak üzere, hiçbir garanti verilmeden sunulur.
-
